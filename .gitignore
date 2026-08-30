@@ -1,0 +1,11 @@
+# 工作区元数据（WorkBuddy 会话记忆、任务状态等）——不入库
+.workbuddy/
+
+# 编辑器 / 系统杂项
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# 本地部署缓存（如有）
+.deploy/
