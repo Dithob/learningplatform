@@ -547,7 +547,8 @@ async function resetSeed(){
  * 今日打卡页
  * ================================================================ */
 let pendingDone = null, doneTimer = null;
-let pendingText = null, textTimer = null;
+let flushing = null; // 已出队、尚未落盘的最后一次勾选快照
+let pendingTexts = {}, textTimer = null;
 
 function formatCN(ds){
   const d = parseDate(ds);
@@ -649,9 +650,18 @@ function renderToday(){
   $('#page-today').innerHTML = html;
 }
 
+/* 当前应显示的勾选集合：未落盘的 pending → 正在落盘的 flushing → 持久层 */
+function effectiveDoneIds(ds){
+  if(pendingDone && pendingDone.ds === ds) return pendingDone.doneIds;
+  if(flushing && flushing.ds === ds) return flushing.doneIds;
+  return Store.dayOf(ds).doneIds;
+}
+
 function toggleDone(id, checked){
   const ds = Store.state.currentDate;
-  const set = new Set(Store.dayOf(ds).doneIds);
+  // 防抖窗口内连续点击：以有效集合（pending/flushing）为基准，而不是从
+  // 持久层 state.days 重读——否则后点会覆盖前点，快速点击会丢勾选
+  const set = new Set(effectiveDoneIds(ds));
   if(checked) set.add(id); else set.delete(id);
   pendingDone = { ds, doneIds: Array.from(set) };
   clearTimeout(doneTimer);
@@ -660,12 +670,15 @@ function toggleDone(id, checked){
 }
 function flushDone(){
   if(!pendingDone) return;
-  const { ds, doneIds } = pendingDone; pendingDone = null;
-  Store.saveDay(ds, { doneIds });
+  const p = pendingDone; pendingDone = null;
+  flushing = { ds: p.ds, doneIds: p.doneIds };
+  Store.saveDay(p.ds, { doneIds: p.doneIds }).then(() => {
+    if(flushing && flushing.doneIds === p.doneIds) flushing = null;
+  });
 }
 function updateTodayUI(){
   const ds = Store.state.currentDate;
-  const set = new Set((pendingDone && pendingDone.ds === ds) ? pendingDone.doneIds : Store.dayOf(ds).doneIds);
+  const set = new Set(effectiveDoneIds(ds));
   const items = Store.activeItems();
   // 更新各组计数 + 进度条
   GROUPS.forEach(g => {
@@ -690,14 +703,18 @@ function updateTodayUI(){
 }
 
 function scheduleTextSave(field, value){
-  pendingText = { ds: Store.state.currentDate, field, value };
+  // 按字段分别暂存：500ms 内快速编辑不同字段互不覆盖
+  pendingTexts[field] = { ds: Store.state.currentDate, field, value };
   clearTimeout(textTimer);
   textTimer = setTimeout(flushText, 500);
 }
 function flushText(){
-  if(!pendingText) return;
-  const { ds, field, value } = pendingText; pendingText = null;
-  Store.saveDay(ds, { [field]: value });
+  const entries = Object.values(pendingTexts);
+  if(!entries.length) return;
+  Object.keys(pendingTexts).forEach(k => delete pendingTexts[k]);
+  const byDs = {};
+  entries.forEach(p => { byDs[p.ds] = byDs[p.ds] || {}; byDs[p.ds][p.field] = p.value; });
+  Object.keys(byDs).forEach(ds => Store.saveDay(ds, byDs[ds]));
 }
 
 function setCurrentDate(ds){
