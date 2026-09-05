@@ -732,10 +732,10 @@ function renderPlan(){
   const cs = CloudSync.ui();
   html += '<div class="card"><div class="card-title">云同步<span class="sub">GitHub Gist · 多设备数据一致</span></div>';
   if(!cs.configured){
-    html += '<div class="hint" style="margin:0 0 10px">原理：所有设备读写同一个 Gist 文件，token 只保存在本机。<br>获取 token：GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token (classic)，勾选 <b>gist</b> 权限，生成后粘贴到下面。</div>'
+    html += '<div class="hint" style="margin:0 0 10px">原理：所有设备读写同一个 Gist 文件，token 只保存在本机；<b>同一 token 会自动关联同一份云端数据</b>（其他设备无需手填 Gist 编号）。<br>获取 token：GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token (classic)，勾选 <b>gist</b> 权限，生成后粘贴到下面。</div>'
       + '<div class="add-row"><input data-cs-token placeholder="粘贴 GitHub token（ghp_ 开头）" autocomplete="off"><button class="btn btn-primary" style="min-width:96px" data-act="csSave">启用云同步</button></div>';
   }else{
-    html += '<div class="hint" style="margin:0 0 10px">已连接（Gist：'+esc(cs.gistId || '首次上传时自动创建')+'）<br>上次同步：'+(cs.syncedAt ? new Date(cs.syncedAt).toLocaleString() : '从未')+'</div>'
+    html += '<div class="hint" style="margin:0 0 10px">已连接（Gist：'+esc(cs.gistId || '未关联，首次上传/下载时自动关联')+'）<br>上次同步：'+(cs.syncedAt ? new Date(cs.syncedAt).toLocaleString() : '从未')+'</div>'
       + '<div class="btn-row">'
       + '<button class="btn btn-primary" data-act="csUpload">'+(cs.busy ? '同步中…' : '上传到云端')+'</button>'
       + '<button class="btn" data-act="csDownload">从云端下载</button>'
@@ -1069,7 +1069,8 @@ function exportJson(){
     exportedAt: new Date().toISOString(),
     planItems: Store.state.planItems,
     days: Object.values(Store.state.days),
-    meta: Object.keys(Store.state.meta).map(k => ({ key: k, value: Store.state.meta[k] })),
+    // 导出同样过滤 cs* 凭证键（token / gistId 永不离开本机）
+    meta: Object.keys(Store.state.meta).filter(k => k.indexOf('cs') !== 0).map(k => ({ key: k, value: Store.state.meta[k] })),
   };
   download(JSON.stringify(payload, null, 2), '学习工作台备份-' + todayStr() + '.json', 'application/json');
   toast('已导出 JSON 备份');
@@ -1089,12 +1090,17 @@ async function importJson(file){
     const data = JSON.parse(await file.text());
     if(!data || !Array.isArray(data.planItems) || !Array.isArray(data.days)) throw new Error('文件格式不正确（非本应用备份）');
     if(!confirm('导入将覆盖当前全部数据（含计划、打卡、日志），确定继续？建议先导出当前备份。')) return;
+    // 备份不含 cs* 凭证键：导入后保留本机云同步配置，避免设备被"断连"
+    const keep = { token: Store.state.meta.csToken, gistId: Store.state.meta.csGistId, autoPush: Store.state.meta.csAutoPush };
     await DataLayer.clear('planItems');
     await DataLayer.clear('days');
     await DataLayer.clear('meta');
     await DataLayer.putAll('planItems', data.planItems);
     await DataLayer.putAll('days', data.days);
     await DataLayer.putAll('meta', data.meta || []);
+    if(keep.token)   await DataLayer.put('meta', { key: 'csToken', value: keep.token });
+    if(keep.gistId)  await DataLayer.put('meta', { key: 'csGistId', value: keep.gistId });
+    if(keep.autoPush !== undefined) await DataLayer.put('meta', { key: 'csAutoPush', value: keep.autoPush });
     await reloadAll();
     await Store.setMetaKV('lastLocalWrite', Date.now());
     Store.state.currentDate = todayStr();
@@ -1161,11 +1167,34 @@ const CloudSync = (() => {
     };
   }
 
+  const GIST_DESC = '学习工作台 · 数据同步（自动生成）';
+
+  /* 在 token 账号下查找已有的同步 Gist：新设备只有 token、没有 gistId 时，
+   * 靠描述匹配找到同一份云端数据（取 updated_at 最新的一份），
+   * 避免误创建第二个 Gist 导致"电脑 A 传的电脑 B 看不到"。 */
+  async function findExistingGist(){
+    const found = [];
+    for(let page = 1; page <= 3; page++){
+      const list = await api('/gists?per_page=100&page=' + page);
+      if(!Array.isArray(list) || !list.length) break;
+      list.forEach(g => { if(g && g.description === GIST_DESC) found.push(g); });
+      if(list.length < 100) break;
+    }
+    if(!found.length) return { id: null, total: 0 };
+    found.sort((a, b) => Date.parse(b.updated_at || 0) - Date.parse(a.updated_at || 0));
+    return { id: found[0].id, total: found.length };
+  }
+
   async function ensureGist(){
     const c = cfg();
     if(c.gistId) return c.gistId;
+    const ex = await findExistingGist();
+    if(ex.id){
+      await Store.setMetaKV('csGistId', ex.id, true);
+      return ex.id;
+    }
     const g = await api('/gists', { method: 'POST', body: JSON.stringify({
-      description: '学习工作台 · 数据同步（自动生成）',
+      description: GIST_DESC,
       public: false,
       files: { [FILE]: { content: JSON.stringify(collectPayload()) } },
     })});
@@ -1186,6 +1215,16 @@ const CloudSync = (() => {
     return JSON.parse(f.content);
   }
 
+  /* 确保已关联 gistId 并拉取云端数据（上传/自动上传共用）：
+   * 都没关联过 → 先发现已有 Gist；发现不了才由 push 创建新 Gist */
+  async function resolveRemote(){
+    if(!cfg().gistId){
+      const ex = await findExistingGist();
+      if(ex.id) await Store.setMetaKV('csGistId', ex.id, true);
+    }
+    return await fetchRemote();
+  }
+
   async function push(){
     const id = await ensureGist();
     await api('/gists/' + id, { method: 'PATCH', body: JSON.stringify({
@@ -1196,12 +1235,18 @@ const CloudSync = (() => {
 
   async function applyRemote(data){
     if(!data || !Array.isArray(data.planItems) || !Array.isArray(data.days)) throw new Error('云端数据格式不正确');
+    // 云端 payload 不含 cs* 凭证键：下载前先保留本机云同步配置，
+    // 否则清库后 token/gistId 丢失，设备会变成"未连接"且自动上传失效
+    const keep = cfg();
     await DataLayer.clear('planItems');
     await DataLayer.clear('days');
     await DataLayer.clear('meta');
     await DataLayer.putAll('planItems', data.planItems);
     await DataLayer.putAll('days', data.days);
     await DataLayer.putAll('meta', data.meta || []);
+    await DataLayer.put('meta', { key: 'csToken', value: keep.token });
+    if(keep.gistId) await DataLayer.put('meta', { key: 'csGistId', value: keep.gistId });
+    await DataLayer.put('meta', { key: 'csAutoPush', value: keep.autoPush });
     await reloadAll();
     await Store.setMetaKV('csSyncedAt', Date.now(), true);
     editingId = null;
@@ -1221,7 +1266,7 @@ const CloudSync = (() => {
     if(busy) return;
     busy = true; renderPlan();
     try{
-      const remote = await fetchRemote();
+      const remote = await resolveRemote();
       if(remote){
         const rt = Date.parse(remote.exportedAt) || 0;
         const sa = Store.state.meta.csSyncedAt || 0;
@@ -1237,6 +1282,14 @@ const CloudSync = (() => {
     if(busy) return;
     busy = true; renderPlan();
     try{
+      // 本机还没关联 gistId：先在 token 名下自动发现已有云端数据
+      if(!cfg().gistId){
+        const ex = await findExistingGist();
+        if(ex.id){
+          await Store.setMetaKV('csGistId', ex.id, true);
+          toast(ex.total > 1 ? ('检测到 ' + ex.total + ' 份云端数据，已关联最新一份') : '已自动关联云端数据');
+        }
+      }
       const data = await fetchRemote();
       if(!data){ toast('云端还没有数据，请先在另一台设备上「上传到云端」'); return; }
       const rt = Date.parse(data.exportedAt) || 0;
@@ -1261,7 +1314,7 @@ const CloudSync = (() => {
     const lw = Store.state.meta.lastLocalWrite || 0;
     if(lw <= c.syncedAt) return;
     try{
-      const remote = await fetchRemote();
+      const remote = await resolveRemote();
       if(remote){
         const rt = Date.parse(remote.exportedAt) || 0;
         if(rt > c.syncedAt){ toast('云端有较新数据，已暂停自动上传，请手动「从云端下载」'); return; }
