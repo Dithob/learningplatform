@@ -93,6 +93,81 @@ details.card[open] summary::before{transform:rotate(90deg)}
 .date-sub{font-size:12px;color:var(--text-3);margin-top:2px}
 .goto-today{display:inline-block;margin:4px auto 0;background:none;border:1px solid var(--line);color:var(--text-2);font-size:12px;border-radius:999px;padding:2px 10px}
 
+/* ===== 补签条 ===== */
+.makeup-bar{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px 12px;margin-bottom:12px}
+.makeup-bar .mk-flag{width:30px;height:30px;flex:none;border-radius:9px;background:var(--amber-soft);color:var(--amber-deep);display:flex;align-items:center;justify-content:center}
+.makeup-bar .mk-text{flex:1;min-width:0;font-size:13px;color:var(--text-2);line-height:1.4}
+.makeup-bar .mk-text b{color:var(--amber-deep)}
+.makeup-bar .mk-ops{display:flex;gap:6px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.mk-btn{background:var(--primary);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;padding:0 12px;min-height:34px;white-space:nowrap}
+.mk-btn:active{background:var(--primary-deep)}
+.mk-btn.ghost{background:#F1F3F7;color:var(--text-2)}
+.mk-btn.ghost:active{background:#E5E7EB}
+.mk-btn.warn{background:var(--amber-soft);color:var(--amber-deep)}
+.mk-btn.warn:active{background:#FBE4BE}
+.mk-btn[disabled]{opacity:.5;cursor:default}
+.mk-done{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--amber-deep);background:var(--amber-soft);border-radius:999px;padding:5px 11px;white-space:nowrap}
+
+/* 补签徽章（打卡项 / 日志头） */
+.mk-badge{display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--amber-deep);background:var(--amber-soft);border-radius:6px;padding:1px 5px;margin-left:6px;vertical-align:1px;cursor:help}
+
+/* ===== 补签面板 / 弹窗 ===== */
+.mk-mask{position:fixed;inset:0;z-index:60;background:rgba(26,29,33,.42);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:flex-end;justify-content:center;animation:mkfade .16s ease}
+@media (min-width:640px){.mk-mask{align-items:center}}
+@keyframes mkfade{from{opacity:0}to{opacity:1}}
+.mk-sheet{
+  width:100%;max-width:520px;max-height:88vh;overflow-y:auto;background:var(--card);
+  border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+  animation:mkslide .2s ease;
+}
+@media (min-width:640px){.mk-sheet{border-radius:18px;padding-bottom:18px;animation:mkfade .16s ease}}
+@keyframes mkslide{from{transform:translateY(16px);opacity:.5}to{transform:none;opacity:1}}
+.mk-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px}
+.mk-title{font-size:16px;font-weight:700}
+.mk-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.mk-close{background:#F1F3F7;border:none;border-radius:9px;width:32px;height:32px;flex:none;font-size:16px;color:var(--text-3);line-height:1}
+.mk-close:active{background:#E5E7EB}
+.mk-sec-title{font-size:12px;font-weight:600;color:var(--text-3);margin:16px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mk-sec-title .mk-link{background:none;border:none;color:var(--primary);font-size:12px;font-weight:600;padding:4px 2px}
+
+/* 面板：近 8 周网格 */
+.mk-grid{display:grid;grid-template-columns:auto repeat(8,1fr);gap:5px;align-items:center;min-width:0}
+.mk-wk{font-size:10px;color:var(--text-3);text-align:center;padding-bottom:2px}
+.mk-dow{font-size:10px;color:var(--text-3);width:16px;text-align:center;line-height:1}
+.mk-cell{
+  aspect-ratio:1;border-radius:6px;background:#F1F3F7;border:1px solid transparent;
+  font-size:10px;color:var(--text-3);display:flex;align-items:center;justify-content:center;
+  padding:0;position:relative;min-width:0;overflow:hidden;
+}
+.mk-cell.part{background:#D6F2E4;color:var(--primary-deep)}
+.mk-cell.full{background:var(--primary);color:#fff;font-weight:600}
+.mk-cell.mk{background:repeating-linear-gradient(45deg,#059669,#059669 3px,#34D399 3px,#34D399 6px);color:#fff;font-weight:600}
+.mk-cell.mk::after{content:'⚑';position:absolute;top:0;right:1px;font-size:8px;color:#fff;opacity:.95}
+.mk-cell.miss{background:#fff;border:1px dashed #D8DDE4;color:var(--text-3);cursor:pointer}
+.mk-cell.miss:active{background:var(--amber-soft);border-color:var(--amber-deep)}
+.mk-cell.future{background:transparent;border:1px dashed #EFF1F4;color:#D5DAE1}
+.mk-cell.today{outline:2px solid var(--primary);outline-offset:-2px;cursor:default}
+.mk-cell[disabled]{cursor:default}
+.mk-cell.part.today,.mk-cell.full.today,.mk-cell.miss.today{opacity:1}
+.mk-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11px;color:var(--text-3);margin-top:12px}
+.mk-legend span{display:inline-flex;align-items:center;gap:5px}
+.mk-legend i{width:12px;height:12px;border-radius:4px;display:inline-block;border:1px solid transparent}
+.mk-legend i.l-full{background:var(--primary)}
+.mk-legend i.l-mk{background:repeating-linear-gradient(45deg,#059669,#059669 3px,#34D399 3px,#34D399 6px)}
+.mk-legend i.l-part{background:#D6F2E4}
+.mk-legend i.l-miss{background:#fff;border:1px dashed #D8DDE4}
+
+/* 弹窗：待补项勾选列表 */
+.mk-list{background:#FBFCFE;border:1px solid var(--line);border-radius:11px;padding:2px 10px;max-height:44vh;overflow-y:auto}
+.mk-list .check-item{padding:10px 0;min-height:42px}
+.mk-group-label{font-size:11px;font-weight:600;color:var(--text-3);padding:9px 0 2px;display:flex;align-items:center;gap:6px}
+.mk-group-label .group-dot{width:8px;height:8px}
+.mk-group-label .mk-group-count{margin-left:auto;font-weight:500}
+.mk-foot{display:flex;gap:8px;margin-top:16px}
+.mk-foot .btn{flex:1}
+.mk-note{font-size:12px;color:var(--text-3);margin-top:10px;line-height:1.6}
+.mk-empty{font-size:13px;color:var(--text-3);text-align:center;padding:18px 0}
+
 /* ===== 进度条 ===== */
 .progress-head{display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);margin-bottom:6px;align-items:baseline}
 .progress-head b{color:var(--primary);font-size:15px}
@@ -212,6 +287,12 @@ textarea::placeholder{color:#B3BAC4}
 .hm-cell.c3{background:#059669}
 .hm-cell.future{background:transparent}
 .hm-cell.today{outline:2px solid var(--primary);outline-offset:-1px}
+/* 补签日：斜纹底纹，与真实打卡同色但可一眼区分 */
+.hm-cell.mk,
+.hm-cell.mk.c1,
+.hm-cell.mk.c2,
+.hm-cell.mk.c3{background:repeating-linear-gradient(45deg,#059669,#059669 2px,#5EE0AE 2px,#5EE0AE 4px)}
+.hm-cell.mk{border:1px solid #059669}
 .hm-legend{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-3);margin-top:8px}
 .hm-legend i{width:12px;height:12px;border-radius:3px}
 .hm-legend .note{margin-left:auto;font-size:11px}
@@ -314,6 +395,7 @@ textarea::placeholder{color:#B3BAC4}
 </nav>
 
 <div id="toast"></div>
+<div id="modalHost"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
 <script>
@@ -488,8 +570,12 @@ const Store = (() => {
       const cur = state.days[ds] || { date: ds, doneIds: [], reflect:'', insight:'', adjust:'', updatedAt: 0 };
       const next = Object.assign({}, cur, patch, { updatedAt: Date.now() });
       next.doneIds = Array.from(new Set(next.doneIds || []));
-      const isEmpty = next.doneIds.length === 0 && !String(next.reflect).trim() && !String(next.insight).trim() && !String(next.adjust).trim();
+      // 空记录判定：无勾选、无文字留档、且非补签 → 不落库（避免撤销后残留脏数据进云端）
+      const isEmpty = next.doneIds.length === 0
+        && !String(next.reflect).trim() && !String(next.insight).trim() && !String(next.adjust).trim()
+        && !next.makeup;
       if(isEmpty && !exists){ delete state.days[ds]; return; }
+      if(isEmpty && exists){ delete state.days[ds]; await DataLayer.remove('days', ds); return; }
       state.days[ds] = next;
       await DataLayer.put('days', next);
     });
@@ -606,6 +692,9 @@ function renderToday(){
     + '<button class="icon-btn" data-act="nextDay" aria-label="后一天"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>'
     + '</div>';
 
+  // 补签条
+  html += renderMakeupBar();
+
   // 大进度条
   html += '<div class="card"><div class="progress-head"><span>今日整体进度</span><b id="todayProgressNum">'+rate+'%</b></div>'
     + '<div class="progress-track"><div class="progress-fill" id="todayProgressFill" style="width:'+rate+'%"></div></div></div>';
@@ -632,6 +721,7 @@ function renderToday(){
         '<label class="check-item'+(doneSet.has(p.id)?' done':'')+'" data-id="'+p.id+'">'
         + '<input type="checkbox" data-id="'+p.id+'"'+(doneSet.has(p.id)?' checked':'')+'>'
         + '<span class="box"></span><span class="title">'+esc(p.title)+'</span>'
+        + (doneSet.has(p.id) && day.makeup ? '<span class="mk-badge" title="补签于 '+(day.makeupAt?fmtTime(day.makeupAt):'—')+'">⚑ 补签</span>' : '')
         + '</label>').join('') + '</div>';
     }
     html += '</div>';
@@ -721,6 +811,338 @@ function setCurrentDate(ds){
   flushText(); flushDone();
   Store.state.currentDate = ds;
   renderToday();
+}
+
+/* ================================================================
+ * 补签（makeup）
+ *
+ * 语义：把某一天事后认定为「已打卡」，勾选哪些项由用户在弹窗里自己定。
+ *  - 数据：day 上加 makeup:true + makeupAt 时间戳（days 表 keyPath=date，
+ *    纯加字段无需升 DB 版本；旧数据 makeup 为 undefined 天然兼容）
+ *  - 与「切到过去某天手动勾选」的区别：补签留痕（徽章 / 热力图斜纹），
+ *    可整体撤销，且补签当天可一次跨多项确认
+ *  - 计入连续天数与完成率（口径说明已有声明）
+ * ================================================================ */
+const MK = { panelOpen: false, pickDs: null, pickSet: null };
+
+function isMakeup(ds){ const d = Store.state.days[ds]; return !!(d && d.makeup); }
+
+/* 已勾选 id 的有效集合（未落盘的 pending/flushing 优先） */
+function doneIdsOf(ds){ return new Set(effectiveDoneIds(ds)); }
+
+/* 某日「已满勤」判定：全部有效计划项都已勾选 */
+function isFullDone(ds){
+  const items = Store.activeItems();
+  if(!items.length) return false;
+  const set = doneIdsOf(ds);
+  return items.every(p => set.has(p.id));
+}
+
+/* 统计窗口内漏签日（排除今天 —— 今天还没结束，不算漏签） */
+function missDays(n){
+  const out = [], start = addDays(new Date(), -(n - 1));
+  const ts = todayStr();
+  for(let d = new Date(start); fmtDate(d) < ts; d.setDate(d.getDate() + 1)){
+    const ds = fmtDate(d);
+    if(!doneIdsOf(ds).size) out.push(ds);
+  }
+  return out;
+}
+
+function renderMakeupBar(){
+  const ds = Store.state.currentDate;
+  const isToday = ds === todayStr();
+  const cur = Store.dayOf(ds);
+  const curSet = doneIdsOf(ds);
+  const full = isFullDone(ds);
+  const made = isMakeup(ds);
+  const total = Store.activeItems().length;
+  // 补签只针对「已过去」的日期：今天属于正常打卡，不提供补签入口
+  const canMakeup = !isToday && !made && !full;
+  const misses = missDays(30);
+
+  // 左侧提示文案
+  let text;
+  if(made){
+    text = '<b>补签记录</b> ⚑ ' + formatCN(ds) + (cur.makeupAt ? ' · ' + fmtTime(cur.makeupAt) : '');
+  }else if(isToday){
+    text = curSet.size
+      ? ('今天已完成 <b>' + curSet.size + '</b> / ' + total + ' 项')
+      : '今天还没打卡，逐项勾选即可';
+  }else if(!curSet.size){
+    text = '这天<b>还没有打卡记录</b>';
+  }else if(full){
+    text = '这天<b>已完成 ' + total + ' 项</b>，无需补签';
+  }else{
+    text = '这天已完成 <b>' + curSet.size + '</b> / ' + total + ' 项';
+  }
+  if(misses.length && !made && !isToday) text += ' · 近 30 天漏签 <b>' + misses.length + '</b> 天';
+
+  // 右侧操作
+  let ops;
+  if(made){
+    ops = '<button class="mk-btn warn" data-act="undoMakeup">撤销补签</button>'
+        + '<button class="mk-btn ghost" data-act="openMakeup">改勾选项</button>';
+  }else if(canMakeup){
+    ops = '<button class="mk-btn ghost" data-act="openMakeup">调整勾选</button>'
+        + '<button class="mk-btn" data-act="makeupThis">补签这天</button>';
+  }else if(full || isToday){
+    // 已满勤 / 今天（含部分完成）：都提供弹窗批量勾选
+    // 今天不给「补签」入口，但批量勾选仍有用（免逐项点）
+    ops = '<button class="mk-btn ghost" data-act="openMakeup">' + (isToday ? '批量勾选' : '调整勾选') + '</button>';
+  }
+  ops += '<button class="mk-btn ghost" data-act="openMakeupPanel">漏签速览</button>';
+
+  return '<div class="makeup-bar">'
+    + '<span class="mk-flag">' + flagSVG() + '</span>'
+    + '<div class="mk-text">' + text + '</div>'
+    + '<div class="mk-ops">' + ops + '</div>'
+    + '</div>';
+}
+
+function flagSVG(){
+  return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h10l-1.5 3L15 10H5"/></svg>';
+}
+function fmtTime(ts){
+  const d = new Date(ts);
+  return (d.getMonth()+1) + '月' + d.getDate() + '日 ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+/* ---------- 近 8 周漏签速览面板 ---------- */
+function renderMakeupPanel(){
+  const today = todayStr();
+  const thisMon = weekStart();
+  const WEEKS = 8;
+  const start = new Date(thisMon); start.setDate(start.getDate() - (WEEKS - 1) * 7);
+  const items = Store.activeItems();
+  const total = items.length;
+  const cells = []; // [week][dow]
+  for(let w = 0; w < WEEKS; w++){
+    const col = [];
+    for(let d = 0; d < 7; d++){
+      const dt = new Date(start); dt.setDate(start.getDate() + w * 7 + d);
+      const ds = fmtDate(dt);
+      const set = doneIdsOf(ds);
+      col.push({ ds, done: set.size, total, makeup: isMakeup(ds), future: ds > today, today: ds === today });
+    }
+    cells.push(col);
+  }
+
+  let html = '<div class="mk-mask" data-act="mkClose">'
+    + '<div class="mk-sheet" data-mk-stop>'
+    + '<div class="mk-head"><div><div class="mk-title">补签速览</div>'
+    + '<div class="mk-sub">近 8 周 · 点虚线格即可补签那天 · 漏签 ' + missDays(56).length + ' 天</div></div>'
+    + '<button class="mk-close" data-act="mkClose" aria-label="关闭">✕</button></div>';
+
+  html += '<div class="mk-sec-title">周 / 日视图（竖向为周一至周日）</div>'
+    + '<div class="mk-grid">';
+  // 表头：周起点日期
+  html += '<span></span>';
+  for(let w = 0; w < WEEKS; w++) html += '<span class="mk-wk">' + cells[w][0].ds.slice(5).replace('-','/') + '</span>';
+  for(let d = 0; d < 7; d++){
+    html += '<span class="mk-dow">' + ['一','二','三','四','五','六','日'][d] + '</span>';
+    for(let w = 0; w < WEEKS; w++){
+      const c = cells[w][d];
+      let cls = 'mk-cell';
+      if(c.future) cls += ' future';
+      else if(c.makeup) cls += ' mk';
+      else if(c.done >= c.total && c.total > 0) cls += ' full';
+      else if(c.done > 0) cls += ' part';
+      else cls += ' miss';
+      // 今天不可补签（属正常打卡），禁用点击并给中性提示
+      if(c.today) cls += ' today';
+      const clickable = !c.future && !c.today;
+      const tip = c.today
+        ? (c.ds + '：今天 · 请在今日页打卡')
+        : (c.ds + '：完成 ' + c.done + ' / ' + c.total + (c.makeup ? '（补签）' : ''));
+      const disabled = clickable ? '' : ' disabled';
+      html += '<button class="' + cls + '" data-act="' + (clickable ? 'mkPick' : 'mkNoop') + '" data-ds="' + c.ds + '" title="' + tip + '"' + disabled + '>'
+        + parseInt(c.ds.slice(8), 10) + '</button>';
+    }
+  }
+  html += '</div>';
+
+  html += '<div class="mk-legend">'
+    + '<span><i class="l-full"></i>已满勤</span>'
+    + '<span><i class="l-mk"></i>已补签</span>'
+    + '<span><i class="l-part"></i>部分完成</span>'
+    + '<span><i class="l-miss"></i>未打卡（可补）</span>'
+    + '</div>';
+
+  const todayMiss = !doneIdsOf(today).size;
+  html += '<div class="mk-foot">'
+    + '<button class="btn' + (todayMiss ? ' btn-primary' : '') + '" data-act="mkClose">' + (todayMiss ? '去今天打卡' : '关闭') + '</button>'
+    + '</div>'
+    + '<div class="mk-note">补签只写勾选状态，不会覆盖当天已填的反思 / 心得 / 调整。<br>'
+    + '今天请在「今日」页逐项打卡 —— 补签仅用于回填已过去的日期。</div>'
+    + '</div></div>';
+
+  return html;
+}
+
+/* ---------- 补签弹窗：勾选具体项 ---------- */
+function renderMakeupPicker(){
+  const ds = MK.pickDs;
+  const day = Store.dayOf(ds);
+  const items = Store.activeItems();
+  const isToday = ds === todayStr();
+  // pickSet 由 openMakeupPicker / makeupThisDay / mkAll 维护，始终以它为准
+  const set = MK.pickSet || new Set(day.doneIds.filter(id => items.some(p => p.id === id)));
+  const made = isMakeup(ds);
+  const title = (made ? '补签 · ' : (isToday ? '今日打卡 · ' : '补签 · ')) + formatCN(ds);
+
+  let html = '<div class="mk-mask" data-act="mkClose">'
+    + '<div class="mk-sheet" data-mk-stop>'
+    + '<div class="mk-head"><div>'
+    + '<div class="mk-title">' + title + '</div>'
+    + '<div class="mk-sub">' + (made
+        ? '这天已补签⚑，可调整勾选'
+        : (isToday ? '勾选今天已完成的项，直接记为今天打卡' : '勾选当天实际完成的项，确认后记为补签')) + '</div>'
+    + '</div><button class="mk-close" data-act="mkClose" aria-label="关闭">✕</button></div>';
+
+  if(!items.length){
+    return html + '<div class="mk-empty">还没有有效计划项，请先到「计划」页添加。</div></div></div>';
+  }
+
+  html += '<div class="mk-sec-title"><span>打卡清单（已选 <span data-mk-count>' + set.size + ' / ' + items.length + '</span>）</span>'
+    + '<button class="mk-link" data-act="mkAll">' + (set.size === items.length ? '清空' : '全选') + '</button></div>'
+    + '<div class="mk-list">';
+
+  GROUPS.forEach(g => {
+    const list = items.filter(p => p.groupId === g.id);
+    if(!list.length) return;
+    const cnt = list.filter(p => set.has(p.id)).length;
+    html += '<div class="mk-group-label"><span class="group-dot" style="background:' + g.color + '"></span>'
+      + esc(g.name) + '<span class="mk-group-count">' + cnt + ' / ' + list.length + '</span></div>';
+    list.forEach(p => {
+      const on = set.has(p.id);
+      html += '<label class="check-item' + (on ? ' done' : '') + '" data-mk-item="' + p.id + '">'
+        + '<input type="checkbox" data-mk-check="' + p.id + '"' + (on ? ' checked' : '') + '>'
+        + '<span class="box"></span><span class="title">' + esc(p.title) + '</span>'
+        + '</label>';
+    });
+  });
+  html += '</div>';
+
+  html += '<div class="mk-foot">'
+    + '<button class="btn" data-act="mkCancel">取消</button>'
+    + '<button class="btn btn-primary" data-act="mkConfirm">'
+      + (set.size
+          ? (isToday ? '确认打卡（' + set.size + ' 项）' : '确认补签（' + set.size + ' 项）')
+          : (isToday ? '清空今天的打卡' : '清空这天的打卡'))
+    + '</button>'
+    + '</div>'
+    + '<div class="mk-note">' + (made
+        ? '确认后将更新这天的补签记录；若一项都不勾选，则等同撤销补签。'
+        : (isToday
+            ? '这里是今天，保存的是正常打卡记录，不会留下 ⚑ 补签标记。'
+            : '补签后会在这天的热力图格子上留下 ⚑ 斜纹标记，随时可撤销；连续天数与完成率照常计入。'))
+    + '</div></div></div>';
+
+  return html;
+}
+
+function openMakeupPanel(){
+  MK.panelOpen = true;
+  mountModal(renderMakeupPanel());
+}
+function openMakeupPicker(ds){
+  MK.pickDs = ds;
+  MK.pickSet = new Set(Store.dayOf(ds).doneIds); // 初始 = 该日已存档的勾选
+  mountModal(renderMakeupPicker());
+}
+function closeModal(){
+  const m = $('#modalHost');
+  if(m) m.innerHTML = '';
+  MK.panelOpen = false;
+}
+function closeMakeupPanelIfAny(){ closeModal(); }
+function mountModal(html){
+  let host = $('#modalHost');
+  if(!host){
+    host = document.createElement('div');
+    host.id = 'modalHost';
+    document.body.appendChild(host);
+  }
+  host.innerHTML = html;
+}
+
+/* 弹窗内勾选后，实时刷新「已选 N / M」与分组计数、确认按钮文案，不整窗重绘
+   （整窗重绘会丢滚动位置，勾选手感变差） */
+function updatePickerCounts(){
+  const items = Store.activeItems();
+  const set = MK.pickSet || new Set();
+  const headCount = $('[data-mk-count]');
+  if(headCount) headCount.textContent = set.size + ' / ' + items.length;
+  // 分组计数：从 DOM 取「该分组标签之后连续的 .check-item」，到下一个标签为止
+  $$('#modalHost .mk-group-label').forEach(g => {
+    const c = g.querySelector('.mk-group-count');
+    if(!c) return;
+    const ids = [];
+    let n = g.nextElementSibling;
+    while(n && n.classList && n.classList.contains('check-item')){ ids.push(n.dataset.mkItem); n = n.nextElementSibling; }
+    c.textContent = ids.filter(id => set.has(id)).length + ' / ' + ids.length;
+  });
+  const confirmBtn = $('#modalHost [data-act="mkConfirm"]');
+  if(confirmBtn) confirmBtn.textContent = set.size ? ('确认补签（' + set.size + ' 项）') : '清空这天的打卡';
+  // 全选按钮文案跟随真实下一步：已全选 → 清空；否则 → 全选
+  const allBtn = $('#modalHost [data-act="mkAll"]');
+  if(allBtn) allBtn.textContent = (items.length && set.size === items.length) ? '清空' : '全选';
+}
+
+/* ---------- 补签写库 ---------- */
+/* 写入补签：勾选集合 + makeup 标记（走串行写队列）
+   ids 为空 → 撤销补签：清勾选并摘掉 makeup 标记，文字留档保留 */
+function applyMakeup(ds, ids){
+  const list = Array.from(new Set(ids || []));
+  // 竞态防护：今日页勾选是 400ms 防抖写入。若用户刚勾一项就立刻用弹窗批量
+  // 勾选确认，pending 的旧快照会在稍后 flush 时把结果覆盖掉。
+  // 这里先 flush 待写快照（走串行队列先入队），并清掉 flushing 显示快照，
+  // 保证随后的补签写入排在最后、UI 也立即反映新值。
+  if(pendingDone && pendingDone.ds === ds){
+    clearTimeout(doneTimer);
+    flushDone();
+  }
+  if(flushing && flushing.ds === ds) flushing = null;
+  const isToday = ds === todayStr();
+  const cur = Store.state.days[ds];
+  let patch;
+  if(list.length){
+    // 今天 → 正常打卡，不打补签标记；过去日期 → 补签标记
+    patch = isToday
+      ? { doneIds: list }
+      : { doneIds: list, makeup: true, makeupAt: Date.now() };
+  }else{
+    // 清空：显式删除标记字段（Object.assign 无法删键，先摘除再写）
+    if(cur){ delete cur.makeup; delete cur.makeupAt; }
+    patch = { doneIds: [] };
+  }
+  return Store.saveDay(ds, patch).then(() => {
+    const n = list.length;
+    if(n){
+      toast(isToday ? ('今天已完成 ' + n + ' 项 · 已保存') : ('已补签 ' + formatCN(ds) + ' · ' + n + ' 项'));
+    }else{
+      toast(isToday ? '已清空今天的打卡' : ('已撤销 ' + formatCN(ds) + ' 的补签'));
+    }
+    refreshAfterWrite();
+  });
+}
+function undoMakeup(ds){
+  if(!confirm('撤销 ' + formatCN(ds) + ' 的补签？\n该日的勾选会清空，已填的反思/心得/调整会保留。')) return;
+  applyMakeup(ds, []);
+}
+/* 「补签这天」：打开弹窗并默认勾满，用户可再增减后确认 */
+function makeupThisDay(){
+  const ds = Store.state.currentDate;
+  MK.pickDs = ds;
+  MK.pickSet = new Set(Store.activeItems().map(p => p.id));
+  mountModal(renderMakeupPicker());
+}
+/* 补签后统一刷新受影响视图 */
+function refreshAfterWrite(){
+  renderToday();
+  if($('#page-stats').classList.contains('active')) renderStats();
+  if($('#page-log').classList.contains('active')) renderLog();
 }
 
 /* ================================================================
@@ -1008,22 +1430,27 @@ function renderStats(){
   weeks.forEach(col => {
     col.forEach(cell => {
       let cls = 'hm-cell';
+      const mk = isMakeup(cell.ds);
       if(cell.future) cls += ' future';
       else if(cell.rate >= 1) cls += ' c3';
       else if(cell.rate >= 0.5) cls += ' c2';
       else if(cell.rate > 0) cls += ' c1';
+      if(mk && !cell.future) cls += ' mk';
       if(cell.ds === ts) cls += ' today';
-      html += '<span class="'+cls+'" title="'+cell.ds+'：完成 '+cell.done+' 项 ('+Math.round(cell.rate*100)+'%)"></span>';
+      const tip = cell.ds + '：完成 ' + cell.done + ' 项 (' + Math.round(cell.rate*100) + '%)' + (mk ? ' · 补签⚑' : '');
+      html += '<span class="'+cls+'" title="'+tip+'"></span>';
     });
   });
   html += '</div></div><div class="hm-legend"><span>少</span>'
-    + '<i class="hm-cell"></i><i class="hm-cell c1"></i><i class="hm-cell c2"></i><i class="hm-cell c3"></i><span>多</span>'
+    + '<i class="hm-cell"></i><i class="hm-cell c1"></i><i class="hm-cell c2"></i><i class="hm-cell c3"></i><i class="hm-cell mk"></i><span>多</span>'
     + '<span class="note">完成率 = 当日勾选 ÷ 有效计划项</span></div></div>';
 
   html += '<div class="card"><div class="card-title">统计口径说明</div>'
     + '<div class="hint">· 连续天数：当天至少完成 1 项即算打卡，从今天反向遍历，遇空当天即止。<br>'
     + '· 完成率：完成项数 ÷ 有效计划项数（已归档项不计入分母）。<br>'
-    + '· 日历热力图：颜色越深完成率越高，未来日期为空白。</div></div>';
+    + '· 日历热力图：颜色越深完成率越高，未来日期为空白。<br>'
+    + '· <span style="color:var(--amber-deep);font-weight:600">补签 ⚑</span>：事后补记的日期，热力图上显示为斜纹格；'
+    + '补签项<b>照常计入完成率与连续天数</b>，如需剔除可到「今日」页撤销补签。</div></div>';
 
   $('#page-stats').innerHTML = html;
 }
@@ -1063,7 +1490,9 @@ function renderLog(){
     const total = r.doneIds.length;
     html += '<div class="log-entry">'
       + '<div class="log-entry-head">'
-      + '<span class="log-meta"><b>'+ds+'</b> · 周'+weekdayCN(parseDate(ds))+' · 完成 <b style="color:var(--primary)">'+total+'</b> 项</span>'
+      + '<span class="log-meta"><b>'+ds+'</b> · 周'+weekdayCN(parseDate(ds))+' · 完成 <b style="color:var(--primary)">'+total+'</b> 项'
+      + (r.makeup ? '<span class="mk-badge" title="补签于 '+(r.makeupAt?fmtTime(r.makeupAt):'—')+'">⚑ 补签</span>' : '')
+      + '</span>'
       + '<button class="log-edit-btn" data-act="editLog" data-ds="'+ds+'">回看 / 编辑</button>'
       + '</div>';
     if(r.reflect)  html += '<div class="log-content reflect-reflect"><span class="tag tag-reflect">反思</span>'+esc(r.reflect)+'</div>';
@@ -1535,6 +1964,36 @@ function bindEvents(){
       case 'csDownload': CloudSync.download(); break;
       case 'csDisconnect': CloudSync.disconnect(); break;
       case 'dismissTip': $('#backupTip').classList.add('hidden'); break;
+      /* ---- 补签 ---- */
+      case 'makeupThis': makeupThisDay(); break;
+      case 'openMakeupPanel': openMakeupPanel(); break;
+      case 'openMakeup': openMakeupPicker(Store.state.currentDate); break;
+      case 'undoMakeup': undoMakeup(Store.state.currentDate); break;
+      case 'mkPick': openMakeupPicker(el.dataset.ds); break;
+      case 'mkNoop': break; // 速览面板里「今天」/未来格：不可点，吞掉点击
+      case 'mkAll': {
+        const items = Store.activeItems();
+        // 只要不是「已全选」就全选；已是全选才清空。
+        // 用 === items.length 而非 >= ：避免手动取消一项后点按钮出现「又补满」的歧义
+        const allOn = MK.pickSet && MK.pickSet.size === items.length;
+        MK.pickSet = new Set(allOn ? [] : items.map(p => p.id));
+        mountModal(renderMakeupPicker());
+        break;
+      }
+      case 'mkCancel': closeModal(); break;
+      case 'mkConfirm': {
+        const ds = MK.pickDs;
+        const set = new Set(MK.pickSet || Store.dayOf(ds).doneIds);
+        closeModal();
+        applyMakeup(ds, Array.from(set));
+        break;
+      }
+      case 'mkClose':
+        // 点遮罩空白处才关；点弹窗内部不关
+        if(e.target.closest('[data-mk-stop]')) break;
+        closeModal();
+        closeMakeupPanelIfAny();
+        break;
     }
   });
 
@@ -1542,6 +2001,15 @@ function bindEvents(){
     const t = e.target;
     if(t.dataset && t.dataset.act === 'csAuto'){
       CloudSync.setAuto(t.checked);
+      return;
+    }
+    // 补签弹窗内的勾选：只改内存 pickSet + 局部刷新，不落库（确认时才写）
+    if(t.dataset && t.dataset.mkCheck){
+      if(!MK.pickSet) MK.pickSet = new Set(Store.dayOf(MK.pickDs).doneIds);
+      if(t.checked) MK.pickSet.add(t.dataset.mkCheck); else MK.pickSet.delete(t.dataset.mkCheck);
+      const lbl = t.closest('.check-item');
+      if(lbl) lbl.classList.toggle('done', t.checked);
+      updatePickerCounts();
       return;
     }
     if(t.type === 'checkbox' && t.dataset.id){
